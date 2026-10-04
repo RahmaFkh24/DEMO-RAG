@@ -1,6 +1,6 @@
 ##Imports and vectorEnvironment Setup
 
-import os
+import gradio as gr
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -29,7 +29,7 @@ chunks = text_splitter.split_documents(document)
 print(chunks[0].page_content)
 #Creating Embeddings and Initializing the Vector DB
 print("Creating  database...")
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
 vector_db = Chroma.from_documents(
     documents=chunks, 
     embedding=embeddings, 
@@ -55,7 +55,7 @@ Answer:
 prompt = PromptTemplate.from_template(template)
 # Initializing the LLM and Constructing the RAG Chain
 # Initialize the free Gemini model tier
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+llm = ChatGoogleGenerativeAI(model="gemini-3.8-flash", temperature=0)
 
 # Helper function to stitch retrieved chunks into a single text block
 def format_docs(docs):
@@ -68,9 +68,27 @@ rag_chain = (
     | llm
 )
 
-#Invoking the Chain with a Question
-user_question = "What days can I work from home?"
-print(f"\nQuestion: {user_question}")
+def answer_question(message: str, _history: list[dict[str, str]]) -> str:
+    question = message
+    if _history:
+        conversation = "\n".join(
+            f"{turn['role']}: {turn['content']}" for turn in _history[-4:]
+        )
+        question = f"Conversation history:\n{conversation}\n\nCurrent question: {message}"
 
-response = rag_chain.invoke(user_question)
-print(f"Answer: {response.content}")
+    response = rag_chain.invoke(question)
+    return response.text
+
+
+demo = gr.ChatInterface(
+    fn=answer_question,
+    title="Employee Handbook Assistant",
+    description="Ask a question about the employee handbook.",
+    examples=[
+        "What days can I work from home?",
+        "What are the employment policies?",
+    ],
+)
+
+if __name__ == "__main__":
+    demo.launch()

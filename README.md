@@ -118,5 +118,7 @@ Check the PDF filename and ensure that the file is in the expected directory.
 If port `7860` is occupied, configure Gradio to use another available port in `rag_app.py`.
 
 ---
+<img width="1812" height="1015" alt="image" src="https://github.com/user-attachments/assets/fa36663c-115d-4c47-957a-b8bd5215c8fc" />
+
 
 *Built with Python, LangChain, Google Gemini, ChromaDB, PyPDF, and Gradio.*
